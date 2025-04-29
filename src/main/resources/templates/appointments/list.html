@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointments | Healthcare App</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">Healthcare App</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/health-records">Health Records</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="/appointments">Appointments</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/profile">Profile</a>
+                    </li>
+                </ul>
+                <form th:action="@{/logout}" method="post" class="form-inline my-2 my-lg-0">
+                    <button class="btn btn-outline-light my-2 my-sm-0" type="submit">Logout</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>My Appointments</h2>
+            <div>
+                <a href="/appointments/upcoming" class="btn btn-outline-primary mr-2">View Upcoming</a>
+                <a href="/appointments/new" class="btn btn-primary">Schedule New Appointment</a>
+            </div>
+        </div>
+        
+        <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+        <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+        
+        <div class="card mb-4" th:if="${#lists.isEmpty(appointments)}">
+            <div class="card-body text-center">
+                <p class="mb-0">You don't have any appointments yet. Click the button above to schedule your first appointment.</p>
+            </div>
+        </div>
+        
+        <div class="table-responsive" th:if="${not #lists.isEmpty(appointments)}">
+            <table class="table table-striped table-hover">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Doctor</th>
+                        <th>Specialization</th>
+                        <th>Purpose</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="appointment : ${appointments}">
+                        <td th:text="${#temporals.format(appointment.appointmentDateTime, 'dd-MM-yyyy HH:mm')}"></td>
+                        <td th:text="${appointment.doctorName}"></td>
+                        <td th:text="${appointment.specialization != null ? appointment.specialization : 'N/A'}"></td>
+                        <td th:text="${appointment.purpose != null ? appointment.purpose : 'N/A'}"></td>
+                        <td>
+                            <span th:class="${'badge ' + (appointment.status == T(com.healthcare.model.Appointment.AppointmentStatus).SCHEDULED ? 'badge-primary' : 
+                                              appointment.status == T(com.healthcare.model.Appointment.AppointmentStatus).COMPLETED ? 'badge-success' : 
+                                              appointment.status == T(com.healthcare.model.Appointment.AppointmentStatus).CANCELLED ? 'badge-danger' : 'badge-warning')}" 
+                                  th:text="${appointment.status}"></span>
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown">
+                                    Actions
+                                </button>
+                                <div class="dropdown-menu">
+                                    <a th:href="@{/appointments/edit/{id}(id=${appointment.id})}" class="dropdown-item">Edit</a>
+                                    <a th:href="@{/appointments/status/{id}/COMPLETED(id=${appointment.id})}" class="dropdown-item" th:if="${appointment.status == T(com.healthcare.model.Appointment.AppointmentStatus).SCHEDULED}">Mark as Completed</a>
+                                    <a th:href="@{/appointments/status/{id}/CANCELLED(id=${appointment.id})}" class="dropdown-item" th:if="${appointment.status == T(com.healthcare.model.Appointment.AppointmentStatus).SCHEDULED}">Cancel</a>
+                                    <a th:href="@{/appointments/status/{id}/RESCHEDULED(id=${appointment.id})}" class="dropdown-item" th:if="${appointment.status == T(com.healthcare.model.Appointment.AppointmentStatus).SCHEDULED}">Mark as Rescheduled</a>
+                                    <div class="dropdown-divider"></div>
+                                    <a th:href="@{/appointments/delete/{id}(id=${appointment.id})}" class="dropdown-item text-danger" onclick="return confirm('Are you sure you want to delete this appointment?')">Delete</a>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
